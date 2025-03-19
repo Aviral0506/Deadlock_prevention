@@ -8,46 +8,37 @@ class DeadlockToolkit:
         """Initialize the toolkit with number of processes and resources."""
         self.processes = processes
         self.resources = resources
-        # Allocation matrix: what each process currently holds
         self.allocation = np.zeros((processes, resources), dtype=int)
-        # Maximum demand matrix: what each process might need
         self.maximum = np.zeros((processes, resources), dtype=int)
-        # Available resources vector
         self.available = np.zeros(resources, dtype=int)
-        # Need matrix: maximum - allocation
         self.need = np.zeros((processes, resources), dtype=int)
 
     def initialize_system(self, available: List[int], max_matrix: List[List[int]]):
         """Set up initial system state."""
         self.available = np.array(available)
         self.maximum = np.array(max_matrix)
-        self.need = self.maximum.copy()  # Initially, need = maximum
+        self.need = self.maximum.copy() 
 
     def request_resources(self, process_id: int, request: List[int]) -> bool:
         """Simulate a resource request and check safety using Banker's Algorithm."""
         request = np.array(request)
         
-        # Check if request exceeds need
         if not np.all(request <= self.need[process_id]):
             print(f"Process {process_id} request exceeds its maximum need.")
             return False
         
-        # Check if enough resources are available
         if not np.all(request <= self.available):
             print(f"Process {process_id} must wait; insufficient resources.")
             return False
         
-        # Temporarily allocate resources
         self.available -= request
         self.allocation[process_id] += request
         self.need[process_id] -= request
         
-        # Check if system is safe
         if self.is_safe_state():
             print(f"Process {process_id} request granted.")
             return True
         else:
-            # Roll back if unsafe
             self.available += request
             self.allocation[process_id] -= request
             self.need[process_id] += request
@@ -86,13 +77,11 @@ class DeadlockToolkit:
         """Visualize resource allocation graph."""
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        # Plot allocation and need for each process
         for i in range(self.processes):
             ax.bar([f"P{i}_Alloc", f"P{i}_Need"], 
                    [np.sum(self.allocation[i]), np.sum(self.need[i])], 
                    color=['blue', 'orange'])
         
-        # Plot available resources
         ax.bar("Available", np.sum(self.available), color='green')
         
         ax.set_ylabel("Resource Units")
@@ -104,7 +93,7 @@ class DeadlockToolkit:
     def simulate_deadlock(self):
         """Simulate a deadlock scenario with random requests."""
         print("Simulating deadlock scenario...")
-        for _ in range(self.processes * 2):  # Arbitrary number of requests
+        for _ in range(self.processes * 2): 
             process_id = random.randint(0, self.processes - 1)
             request = [random.randint(0, 2) for _ in range(self.resources)]
             print(f"Process {process_id} requesting {request}")
@@ -132,28 +121,23 @@ class DeadlockToolkit:
                 print("Invalid input. Please enter integers.")
 
 def main():
-    # Example: 3 processes, 3 resources
     toolkit = DeadlockToolkit(processes=3, resources=3)
     
-    # Initial system state
-    available = [3, 3, 2]  # Available resources
+    available = [3, 3, 2]  
     max_matrix = [
-        [7, 5, 3],  # P0 max need
-        [3, 2, 2],  # P1 max need
-        [9, 0, 2],  # P2 max need
+        [7, 5, 3], 
+        [3, 2, 2], 
+        [9, 0, 2],  
     ]
     
     toolkit.initialize_system(available, max_matrix)
     
-    # Test a request
     toolkit.request_resources(1, [1, 0, 2])
     toolkit.plot_resource_allocation()
     
-    # Simulate deadlock
     print("\nStarting random simulation...")
     toolkit.simulate_deadlock()
     
-    # Custom simulation
     print("\nStarting custom simulation...")
     toolkit.custom_simulation()
 
