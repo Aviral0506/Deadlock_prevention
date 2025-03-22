@@ -17,7 +17,7 @@ class DeadlockToolkit:
         """Set up initial system state."""
         self.available = np.array(available)
         self.maximum = np.array(max_matrix)
-        self.need = self.maximum.copy() 
+        self.need = self.maximum - self.allocation  # Fix: Correct need matrix calculation
 
     def request_resources(self, process_id: int, request: List[int]) -> bool:
         """Simulate a resource request and check safety using Banker's Algorithm."""
@@ -71,7 +71,6 @@ class DeadlockToolkit:
         self.available += release
         self.need[process_id] += release
         print(f"Process {process_id} released resources.")
-
 
     def plot_resource_allocation(self):
         """Visualize resource allocation graph."""
