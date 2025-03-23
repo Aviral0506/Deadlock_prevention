@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deadlock Prevention Toolkit</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1, h2 { color: #333; }
+        input, textarea, button { margin: 5px 0; padding: 8px; width: 100%; }
+        button { background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        pre { background: #f4f4f4; padding: 10px; border-radius: 5px; }
+    </style>
+    <script>
+        async function sendRequest(endpoint, method, data = null) {
+            try {
+                const options = { method, headers: { 'Content-Type': 'application/json' } };
+                if (data) options.body = JSON.stringify(data);
+
+                const response = await fetch(endpoint, options);
+                const result = await response.json();
+
+                document.getElementById('output').innerText = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('output').innerText = "Error: " + error.message;
+            }
+        }
+
+        function initializeSystem() {
+            const available = document.getElementById('available').value.split(',').map(Number);
+            const maxMatrix = document.getElementById('maxMatrix').value.trim();
+            
+            if (!maxMatrix) {
+                alert("Please enter a valid Max Matrix.");
+                return;
+            }
+
+            try {
+                const parsedMaxMatrix = JSON.parse(maxMatrix);
+                sendRequest('/init', 'POST', { available, max_matrix: parsedMaxMatrix });
+            } catch (error) {
+                alert("Invalid JSON format for Max Matrix.");
+            }
+        }
+
+        function requestResources() {
+            const process_id = parseInt(document.getElementById('reqProcessId').value);
+            const request = document.getElementById('reqResources').value.split(',').map(Number);
+
+            if (isNaN(process_id) || request.some(isNaN)) {
+                alert("Please enter valid numbers.");
+                return;
+            }
+
+            sendRequest('/request', 'POST', { process_id, request });
+        }
+
+        function releaseResources() {
+            const process_id = parseInt(document.getElementById('relProcessId').value);
+            const release = document.getElementById('relResources').value.split(',').map(Number);
+
+            if (isNaN(process_id) || release.some(isNaN)) {
+                alert("Please enter valid numbers.");
+                return;
+            }
+
+            sendRequest('/release', 'POST', { process_id, release });
+        }
+
+        function checkDeadlock() {
+            fetch('/deadlock', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.safe_sequence && data.safe_sequence.length > 0) {
+                    alert("No Deadlock Detected!\nSafe Sequence: " + data.safe_sequence.join(" → "));
+                } else {
+                    alert("Deadlock Detected! No Safe Sequence.");
+                }
+                document.getElementById('output').innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => console.error("Error:", error));
+        }
+
+
+    </script>
+</head>
+<body>
+    <h1>Deadlock Prevention and Recovery Toolkit</h1>
+    
+    <h2>Initialize System</h2>
+    <label>Available Resources (comma-separated):</label>
+    <input type="text" id="available" placeholder="e.g., 3,3,2">
+    <br>
+    <label>Max Matrix (JSON format):</label>
+    <textarea id="maxMatrix" placeholder='e.g., [[7,5,3],[3,2,2],[9,0,2]]'></textarea>
+    <br>
+    <button onclick="initializeSystem()">Initialize</button>
+    
+    <h2>Request Resources</h2>
+    <label>Process ID:</label>
+    <input type="number" id="reqProcessId" min="0">
+    <br>
+    <label>Resources Requested (comma-separated):</label>
+    <input type="text" id="reqResources" placeholder="e.g., 1,0,2">
+    <br>
+    <button onclick="requestResources()">Request</button>
+    
+    <h2>Release Resources</h2>
+    <label>Process ID:</label>
+    <input type="number" id="relProcessId" min="0">
+    <br>
+    <label>Resources Released (comma-separated):</label>
+    <input type="text" id="relResources" placeholder="e.g., 1,0,2">
+    <br>
+    <button onclick="releaseResources()">Release</button>
+    
+    <h2>Check Deadlock</h2>
+    <button id="checkDeadlock" onclick="checkDeadlock()">Check</button>
+    
+    <h2>Output</h2>
+    <pre id="output"></pre>
+</body>
+</html>
