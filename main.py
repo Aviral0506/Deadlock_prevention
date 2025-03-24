@@ -170,7 +170,6 @@ def main():
                 "status": p["status"]
             } for pid, p in toolkit.processes.items()})
 
-        # Resource Request
         st.subheader("Resource Request")
         process_id = st.selectbox("Select Process", list(toolkit.processes.keys()))
         resource_id = st.selectbox("Select Resource", list(toolkit.resources.keys()))
@@ -180,7 +179,6 @@ def main():
             success = toolkit.request_resource(process_id, resource_id, amount)
             st.success(f"Resource request {'succeeded' if success else 'failed'}")
 
-        # Deadlock Detection and Recovery
         st.subheader("Deadlock Management")
         if st.button("Detect Deadlock"):
             deadlocked = toolkit.detect_deadlock()
