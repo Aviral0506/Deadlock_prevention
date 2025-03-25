@@ -22,7 +22,6 @@ class DeadlockToolkit:
                     "status": "Running"
                 } for i in range(num_processes)
             }
-            # Initialize resource allocation
             for pid in self.processes:
                 for rid in self.resources:
                     self.processes[pid]["max_needed"][rid] = random.randint(0, self.resources[rid])
@@ -34,11 +33,11 @@ class DeadlockToolkit:
             if resource_id not in self.resources or process_id not in self.processes:
                 return False
 
-            # Check if request exceeds maximum needed
+            # Check if request exceds maximum needed 
             if amount > self.processes[process_id]["max_needed"][resource_id]:
                 return False
 
-            # Check if enough resources are available
+            # Check if enough resources are available or not
             available = self.resources[resource_id] - sum(
                 p["allocated"].get(resource_id, 0) for p in self.processes.values()
             )
