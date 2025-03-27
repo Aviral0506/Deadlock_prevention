@@ -1,4 +1,4 @@
-# deadlock_toolkit.py
+#Deadlock prevention and toolkit Project
 import streamlit as st
 import time
 from typing import List, Dict
